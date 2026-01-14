@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>七年级地理·第二章</title>
+  <style>
+    body{margin:0;background:#0b0f19;color:#e8eefc;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:12px;display:grid;gap:10px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .pill{font-size:12px;opacity:.85;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04)}
+    .stage{border:1px solid rgba(255,255,255,.14);border-radius:16px;overflow:hidden;background:rgba(255,255,255,.04)}
+    img{width:100%;display:block}
+    .actions{display:flex;gap:10px}
+    button{flex:1;padding:12px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:800}
+    .ghost{background:rgba(255,255,255,.10);color:#e8eefc;border:1px solid rgba(255,255,255,.16)}
+    .btn{background:rgba(255,255,255,.85);color:#0b0f19}
+    button:disabled{opacity:.45;cursor:not-allowed}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill" id="info">第 1 页</div>
+      <div class="pill">主线：PPT内容 | 节点：理解确认</div>
+    </div>
+
+    <div class="stage">
+      <img id="slide" src="slides/1.jpg" alt="slide" />
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="prev">上一页</button>
+      <button class="btn" id="next">下一页</button>
+    </div>
+  </div>
+
+<script>
+  // ====== 配置：第二章总页数（你导出多少张就填多少）======
+  const TOTAL = 15;
+
+  // ====== 配置：在哪些页后插“理解确认” ======
+  // 示例：当你看完第 5 页，点击“下一页”不是去第 6 页，而是去 check1.html
+  // 你后续可以加更多：{ after: 5, to: "check1.html" }, { after: 9, to: "check2.html" } ...
+  const CHECKPOINTS = [
+  { after: 3,  to: "check1.html", passTo: 4 },
+  { after: 5,  to: "check2.html", passTo: 6 },
+  { after: 7,  to: "check3.html", passTo: 8 },
+  { after: 10, to: "check4.html", passTo: 11 },
+  { after: 11, to: "check5.html", passTo: 12 },
+  { after: 12, to: "check6.html", passTo: 13 },
+  { after: 13, to: "check7.html", passTo: 14 }
+];
+
+
+  function getSlideIndex(){
+    const m = location.hash.match(/s=(\d+)/);
+    return m ? Math.max(1, Math.min(TOTAL, parseInt(m[1],10))) : 1;
+  }
+  function setSlideIndex(i){
+    location.hash = `s=${i}`;
+  }
+
+  const img = document.getElementById("slide");
+  const info = document.getElementById("info");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+
+  function render(){
+    const i = getSlideIndex();
+    img.src = `slides/${i}.jpg`;
+    info.textContent = `第 ${i} 页 / ${TOTAL}`;
+    prev.disabled = i <= 1;
+    next.disabled = i >= TOTAL;
+  }
+
+  prev.onclick = ()=>{
+    const i = getSlideIndex();
+    if(i>1) setSlideIndex(i-1);
+  };
+
+  next.onclick = ()=>{
+    const i = getSlideIndex();
+
+    // 检查是否需要插入理解确认
+    const cp = CHECKPOINTS.find(x=>x.after === i);
+    if(cp){
+      // 把通过后要返回的页数写到 URL 参数里
+      location.href = `${cp.to}?next=${cp.passTo}`;
+      return;
+    }
+    if(i<TOTAL) setSlideIndex(i+1);
+  };
+
+  window.addEventListener("hashchange", render);
+  render();
+</script>
+</body>
+</html>

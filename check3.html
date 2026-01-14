@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>理解确认 3 · 七大洲四大洋</title>
+  <style>
+    body{margin:0;background:#0b0f19;color:#e8eefc;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    .wrap{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
+    .title{font-size:20px;font-weight:900;margin:0 0 6px}
+    .desc{opacity:.85;line-height:1.6;margin:0 0 12px}
+    .stage{
+      position:relative;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      border-radius:18px;
+      overflow:hidden;
+      aspect-ratio: 16/9;
+    }
+    .stage img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95}
+    .hotspot{
+      position:absolute;
+      border:2px solid rgba(255,255,255,.35);
+      background:rgba(255,255,255,.08);
+      border-radius:16px;
+      cursor:pointer;
+      transition:.08s ease;
+    }
+    .hotspot:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.6)}
+    .hotspot.ok{border-color:rgba(16,185,129,.75);background:rgba(16,185,129,.18)}
+    .hotspot.bad{border-color:rgba(239,68,68,.75);background:rgba(239,68,68,.18)}
+    .msg{min-height:28px;margin-top:12px;line-height:1.6;opacity:.92}
+    .okBox{background:rgba(16,185,129,.20);border:1px solid rgba(16,185,129,.55);padding:10px 12px;border-radius:14px}
+    .badBox{background:rgba(239,68,68,.20);border:1px solid rgba(239,68,68,.55);padding:10px 12px;border-radius:14px}
+    .actions{display:flex;gap:10px;margin-top:12px}
+    button{flex:1;padding:12px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:rgba(255,255,255,.85);color:#0b0f19}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .pill{display:inline-block;font-size:12px;opacity:.85;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">理解确认 · 空间定位（七大洲四大洋）</div>
+      <div class="desc">
+        只做 1 次定位：请在图上 <b>点出“太平洋”</b>。<span class="pill">点一下即可</span>
+      </div>
+
+      <div class="stage" id="stage">
+        <!-- 你需要把地图截图放到 geo-ch2/assets/map.jpg -->
+        <img src="assets/map.jpg" alt="map"/>
+
+        <!-- 3 个可点击区域：其中一个是太平洋 -->
+        <!-- 这些位置是“通用世界地图的大概位置”，你如果用自己PPT截图，可能需要微调 -->
+<!-- 太平洋（正确区域：美洲西侧） -->
+<div class="hotspot" data-ok="true"
+     style="left:4%; top:22%; width:34%; height:58%;"></div>
+
+<!-- 大西洋（干扰项） -->
+<div class="hotspot" data-ok="false"
+     style="left:38%; top:20%; width:18%; height:60%;"></div>
+
+<!-- 印度洋（干扰项） -->
+<div class="hotspot" data-ok="false"
+     style="left:58%; top:30%; width:22%; height:42%;"></div>
+
+      </div>
+
+      <div class="msg" id="msg"></div>
+
+      <div class="actions">
+        <button id="continue" disabled>继续学习</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const nextSlide = parseInt(params.get("next") || "8", 10);
+
+  const msg = document.getElementById("msg");
+  const cont = document.getElementById("continue");
+  const spots = document.querySelectorAll(".hotspot");
+
+  let passed = false;
+
+  function lock(){
+    spots.forEach(s=>s.style.pointerEvents="none");
+  }
+  function unlock(){
+    spots.forEach(s=>s.style.pointerEvents="auto");
+  }
+
+  spots.forEach(s=>{
+    s.onclick = ()=>{
+      if(passed) return;
+
+      const ok = s.dataset.ok === "true";
+      spots.forEach(x=>x.classList.remove("ok","bad"));
+
+      if(ok){
+        s.classList.add("ok");
+        msg.innerHTML = `<div class="okBox">✅ 正确。<br>太平洋是世界最大的大洋，位置在亚洲/澳大利亚与美洲之间，跨越东西两侧。</div>`;
+        passed = true;
+        cont.disabled = false;
+        lock();
+      }else{
+        s.classList.add("bad");
+        msg.innerHTML = `<div class="badBox">❌ 再想一想。<br><span style="opacity:.9">提示：太平洋在“美洲的西侧 + 亚洲的东侧”之间，是一个很宽的带状海域。</span></div>`;
+        lock();
+        setTimeout(()=>{ if(!passed){ unlock(); spots.forEach(x=>x.classList.remove("bad")); } }, 900);
+      }
+    };
+  });
+
+  cont.onclick = ()=>{
+    location.href = `index.html#s=${nextSlide}`;
+  };
+</script>
+</body>
+</html>
