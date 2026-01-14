@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>破妄确认 6 · 机制层配对</title>
+
+  <style>
+    body{margin:0;background:#0b0f19;color:#e8eefc;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    .wrap{max-width:920px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
+    .title{font-size:20px;font-weight:900;margin:0 0 6px}
+    .desc{opacity:.86;line-height:1.7;margin:0 0 12px}
+    .pill{display:inline-block;font-size:12px;opacity:.85;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){.row{grid-template-columns:1fr}}
+    .box{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      border-radius:18px;
+      padding:14px;
+    }
+    .h{font-weight:900;margin:0 0 10px}
+    .item{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:12px;
+      cursor:pointer;
+      user-select:none;
+      margin-top:10px;
+      line-height:1.6;
+      transition:.08s ease;
+    }
+    .item:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28)}
+    .item.pick{outline:2px solid rgba(255,255,255,.35)}
+    .item.ok{background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.55)}
+    .item.bad{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.55)}
+    .msg{min-height:28px;margin-top:12px;line-height:1.7;opacity:.92}
+    .okBox{background:rgba(16,185,129,.20);border:1px solid rgba(16,185,129,.55);padding:10px 12px;border-radius:14px}
+    .badBox{background:rgba(239,68,68,.20);border:1px solid rgba(239,68,68,.55);padding:10px 12px;border-radius:14px}
+    .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    button{flex:1;min-width:160px;padding:12px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:900;background:rgba(255,255,255,.85);color:#0b0f19}
+    button.ghost{background:rgba(255,255,255,.10);color:#e8eefc;border:1px solid rgba(255,255,255,.16)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .small{font-size:12px;opacity:.82}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="title">破妄确认 · 机制层配对</div>
+    <div class="desc">
+      证据链已闭合，现在进入“机制层”。请完成一次 <b>因果配对</b>：<br>
+      <span class="pill">先点左边一个动作，再点右边一个结果</span>
+      <span class="pill">完成 2 组配对即可结印</span>
+    </div>
+
+    <div class="row">
+      <div class="box">
+        <div class="h">板块动作（原因）</div>
+        <div class="item" data-left="collision">挤压碰撞（两块板块相向运动）</div>
+        <div class="item" data-left="diverge">张裂分离（两块板块背向运动）</div>
+      </div>
+
+      <div class="box">
+        <div class="h">地形 / 现象（结果）</div>
+        <div class="item" data-right="collision">形成山脉、海沟，地震更频繁</div>
+        <div class="item" data-right="diverge">形成海岭、裂谷，火山活动明显</div>
+        <div class="item" data-right="noise">昼夜交替与四季变化</div>
+      </div>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="actions">
+      <button class="ghost" id="reset">清空选择</button>
+      <button id="continue" disabled>结印完成 · 进入下一页</button>
+    </div>
+
+    <div class="small" style="margin-top:10px">
+      提示：配对只看“机制 → 结果”，不要被无关项干扰。
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const nextSlide = parseInt(params.get("next") || "13", 10);
+
+  const msg = document.getElementById("msg");
+  const btnReset = document.getElementById("reset");
+  const btnContinue = document.getElementById("continue");
+
+  const leftItems = [...document.querySelectorAll("[data-left]")];
+  const rightItems = [...document.querySelectorAll("[data-right]")];
+
+  let pickedLeft = null;
+  let matched = 0;
+
+  function clearPicks(){
+    leftItems.forEach(x=>x.classList.remove("pick"));
+    rightItems.forEach(x=>x.classList.remove("pick"));
+  }
+
+  function resetAll(){
+    pickedLeft = null;
+    matched = 0;
+    clearPicks();
+    leftItems.forEach(x=>x.classList.remove("ok","bad"));
+    rightItems.forEach(x=>x.classList.remove("ok","bad"));
+    msg.innerHTML = "";
+    btnContinue.disabled = true;
+
+    // 重新启用
+    leftItems.forEach(x=>x.style.pointerEvents="auto");
+    rightItems.forEach(x=>x.style.pointerEvents="auto");
+  }
+
+  function showGood(text){
+    msg.innerHTML = `<div class="okBox">✅ ${text}</div>`;
+  }
+  function showBad(text){
+    msg.innerHTML = `<div class="badBox">❌ ${text}</div>`;
+  }
+
+  leftItems.forEach(li=>{
+    li.onclick = ()=>{
+      if(li.classList.contains("ok")) return; // 已匹配过不再选
+      pickedLeft = li.dataset.left;
+      clearPicks();
+      li.classList.add("pick");
+      showGood("已选择一个“板块动作”。现在去右边点对应的“结果”。");
+    };
+  });
+
+  rightItems.forEach(ri=>{
+    ri.onclick = ()=>{
+      if(!pickedLeft){
+        showBad("先点左边选择一个“板块动作”。");
+        return;
+      }
+      if(ri.classList.contains("ok")) return;
+
+      const want = pickedLeft;
+      const got = ri.dataset.right;
+
+      clearPicks();
+
+      if(got === want){
+        // 找到左边对应项并标记
+        const leftCard = leftItems.find(x=>x.dataset.left === want);
+        leftCard.classList.add("ok");
+        ri.classList.add("ok");
+        matched += 1;
+        pickedLeft = null;
+
+        if(matched >= 2){
+          showGood("结印完成：机制 → 结果 的两组配对已闭合。下一步进入“活动带”。");
+          btnContinue.disabled = false;
+
+          // 可选：锁定其余点击
+          leftItems.forEach(x=>x.style.pointerEvents="none");
+          rightItems.forEach(x=>x.style.pointerEvents="none");
+        }else{
+          showGood("配对正确。再完成另一组配对即可结印。");
+        }
+      }else{
+        // 错误：红一下，但不惩罚
+        ri.classList.add("bad");
+        showBad("这个结果与所选动作不匹配。提示：碰撞→山脉/海沟；张裂→海岭/裂谷。");
+        // 0.9 秒后清除红色并允许继续
+        setTimeout(()=>{ ri.classList.remove("bad"); }, 900);
+      }
+    };
+  });
+
+  btnReset.onclick = resetAll;
+
+  btnContinue.onclick = ()=>{
+    location.href = `index.html#s=${nextSlide}`;
+  };
+</script>
+</body>
+</html>

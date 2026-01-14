@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>理解确认 2 · 南北半球水陆差异</title>
+
+  <style>
+    body{margin:0;background:#0b0f19;color:#e8eefc;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    .wrap{max-width:820px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px}
+    .title{font-size:20px;font-weight:900;margin:0 0 6px}
+    .desc{opacity:.85;line-height:1.6;margin:0 0 10px}
+    .stmt{
+      margin-top:10px;
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      line-height:1.7;
+      font-weight:800;
+    }
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      flex:1;
+      min-width:140px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:0;
+      cursor:pointer;
+      font-weight:900;
+    }
+    .ghost{background:rgba(255,255,255,.10);color:#e8eefc;border:1px solid rgba(255,255,255,.16)}
+    .btn{background:rgba(255,255,255,.85);color:#0b0f19}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .msg{min-height:28px;margin-top:10px;line-height:1.6;opacity:.9}
+    .ok{background:rgba(16,185,129,.20);border:1px solid rgba(16,185,129,.55);padding:10px 12px;border-radius:14px}
+    .bad{background:rgba(239,68,68,.20);border:1px solid rgba(239,68,68,.55);padding:10px 12px;border-radius:14px}
+    .tip{opacity:.85}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="title">理解确认 · 南北半球水陆差异</div>
+    <p class="desc">判断下面这句话对不对（只需要 10 秒）：</p>
+
+    <div class="stmt" id="stmt">
+      “北半球陆地相对集中，南半球海洋更广阔。”
+    </div>
+
+    <div class="btnRow">
+      <button class="ghost" id="falseBtn">错</button>
+      <button class="ghost" id="trueBtn">对</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="btnRow" style="margin-top:14px">
+      <button class="btn" id="continue" disabled>继续学习</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const nextSlide = parseInt(params.get("next") || "6", 10);
+
+  const msg = document.getElementById("msg");
+  const btnContinue = document.getElementById("continue");
+  const trueBtn = document.getElementById("trueBtn");
+  const falseBtn = document.getElementById("falseBtn");
+
+  let passed = false;
+
+  function lockButtons(){
+    trueBtn.disabled = true;
+    falseBtn.disabled = true;
+  }
+  function unlockButtons(){
+    trueBtn.disabled = false;
+    falseBtn.disabled = false;
+  }
+
+  function pass(){
+    passed = true;
+    btnContinue.disabled = false;
+    lockButtons();
+  }
+
+  // 正确答案：对
+  trueBtn.onclick = ()=>{
+    if(passed) return;
+    msg.innerHTML = `<div class="ok">✅ 正确。<br><span class="tip">关键不是记忆数字，而是抓住：<b>北半球相对“陆多”，南半球相对“海多”</b>。</span></div>`;
+    pass();
+  };
+
+  falseBtn.onclick = ()=>{
+    if(passed) return;
+    msg.innerHTML = `<div class="bad">❌ 再想一想。<br><span class="tip">提示：人类主要生活在北半球，而大陆也主要分布在北半球；南半球大洋更广阔。</span></div>`;
+    lockButtons();
+    // 0.9 秒后允许再选
+    setTimeout(()=>{ if(!passed) unlockButtons(); }, 900);
+  };
+
+  btnContinue.onclick = ()=>{
+    location.href = `index.html#s=${nextSlide}`;
+  };
+</script>
+</body>
+</html>
